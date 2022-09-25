@@ -1,14 +1,25 @@
 <template>
   <div class='container'>
-
     <div class='row'>
-        <div class='pull-right'>
-          <button type='button' class='btn btn-primary btn-sm' @click='search()'>検  索</button>
-          <button type='button' class='btn btn-primary btn-sm' @click='clear()'>クリア</button>
-        </div>
+      <div class='pull-right'>
+        <button type='button' class='btn btn-primary btn-sm' @click='search()'>検  索</button>
+        <button type='button' class='btn btn-primary btn-sm' @click='clear()'>クリア</button>
+      </div>
     </div>
 
     <div class='row'>
+      <div class='form-group'>
+        <div class='col-xs-5'>
+          <ol>
+            <li>appid、発行年月日は必須入力とする。</li>
+            <li>クリアボタン押下でもappidは残す。</li>
+            <li>検索件数の上限は {{ this.maxSearchCount }} 件固定としている。</li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <div class='row' style='margin-top:0.8em;'>
       <div class='form-group'>
         <div class='col-xs-4'>
           <label :class='{ errorLabel: isRequiredErrorForAppId }'>appid（必須）</label>
@@ -17,7 +28,7 @@
       </div>
     </div>
 
-    <div class='row' style='margin-top:1.0em;'>
+    <div class='row' style='margin-top:0.8em;'>
       <div class='form-group'>
         <div class='col-xs-3'>
           <label :class='{ errorLabel: isRequiredErrorForDay }'>発行年月日（必須）</label>
@@ -91,6 +102,8 @@ export default {
         fromDay: "",
         toDay: "",
         title: "",
+        // 最大検索件数
+        maxSearchCount: 100,
     }
   },
   created() {
@@ -177,7 +190,7 @@ export default {
       }
       this.countAuthor = 1;
       this.countKeyword = 1;
-      this.$emit("loadComplete", { results: [] });
+      this.$emit("loadComplete", { results: [], current: 1 });
     },
     /**
      * 検索押下
@@ -193,7 +206,6 @@ export default {
       // 発行年月日
       let day1 = this.fromDay.split("/");
       let day2 = this.toDay.split("/");
-
       // 著者名
       let authors = [];
       for (let i = 1; i <= this.countAuthor; i++) {
@@ -202,7 +214,6 @@ export default {
           authors.push(e.value.trim());
         }
       }
-
       // キーワード
       let keywords = [];
       for (let i = 1; i <= this.countKeyword; i++) {
@@ -212,6 +223,7 @@ export default {
         }
       }
 
+      // GETパラメータ
       const params = {
         "appid": this.applicationId,
         "lang": "ja",
@@ -231,24 +243,12 @@ export default {
 
       const axiosInstance = axios.create({
         baseURL: "https://cir.nii.ac.jp/opensearch" });
+
       axiosInstance.get("/all", {
           params: params,
       })
       .then(res => {
-
         const { data } = res;
-
-        if (data.items.length != 0) {
-          // ヘッダ行
-          results.push({
-            "id": "#",
-            "url": "詳細",
-            "title": "タイトル",
-            "issueDay": "発行年月日",
-            "author": "著者",
-          });
-        }
-
         const array = data.items;
         array.forEach((e, i) => {
           results.push({
@@ -266,7 +266,7 @@ export default {
         alert("想定外の異常が発生しました。");
       })
       .finally (
-        () => this.$emit("loadComplete", { results: results })
+        () => this.$emit("loadComplete", { results: results, current: 1 })
       );
 
     },
@@ -294,16 +294,20 @@ export default {
 </script>
 
 <style>
-    .calender-text-box {
-        text-align: center;
-        border: 1px solid #ccc;
-        outline: none;
-        width: 120px;
-    }
-    .vdp-datepicker__calendar {
-        width: 96% !important;
-    }
-    .errorLabel {
-      color: red;
-    }
+  .calender-text-box {
+      text-align: center;
+      border: 1px solid #ccc;
+      outline: none;
+      width: 120px;
+  }
+  .vdp-datepicker__calendar {
+      width: 96% !important;
+  }
+  .errorLabel {
+    color: red;
+  }
+  ol {
+    background: #f3fbff;
+    border: 2px skyblue dashed;
+  }
 </style>

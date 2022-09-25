@@ -1,7 +1,7 @@
 <template>
   <div>
     <Search @loadStart='onLoadStart' @loadComplete='onLoadComplete' />
-    <Result :results='results' :isShowLoading='loadProgress' />
+    <Result :results='results' :current='current' :isShowLoading='loadProgress' />
   </div>
 </template>
 
@@ -17,6 +17,7 @@ export default {
   data() {
     return {
       results: [],
+      current: 1,
       loadProgress: false,
     }
   },
@@ -24,8 +25,9 @@ export default {
     onLoadStart() {
       this.loadProgress = true;
     },
-    onLoadComplete({ results }) {
+    onLoadComplete({ results, current }) {
       this.results = results;
+      this.current = current;
       this.loadProgress = false;
     },
   },
